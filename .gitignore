@@ -1,0 +1,6 @@
+.DS_Store
+logs/
+*.log
+config.sh
+*.plist
+!*.template.plist
