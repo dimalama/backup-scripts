@@ -1,0 +1,38 @@
+{
+  "name": "Backup Scripts",
+  "description": "A collection of shell scripts for automated Git backups of Obsidian vault and personal documents",
+  "type": "shell-scripts",
+  "language": "bash",
+  "mainBranch": "main",
+  "conventions": {
+    "style": "Follow Google Shell Style Guide",
+    "errorHandling": "Use set -e for script failures, check return codes for critical operations",
+    "logging": "Log to logs/ directory with timestamps",
+    "configuration": "Use config.sh for all configurable paths and settings"
+  },
+  "testing": {
+    "notes": "Manual testing required for backup scripts - verify backups complete successfully"
+  },
+  "environment": {
+    "platform": "macOS/Linux",
+    "dependencies": [
+      "git",
+      "bash"
+    ],
+    "launchd": "macOS launch agents for scheduled backups"
+  },
+  "files": {
+    "config": "config.sh (created from config.template.sh)",
+    "scripts": [
+      "backup-obsidian.sh",
+      "backup-personal-docs.sh",
+      "setup-launchd.sh"
+    ],
+    "templates": [
+      "config.template.sh",
+      "setup-launchd.template.sh",
+      "com.example.backup-obsidian.template.plist",
+      "com.example.backup-personal-docs.template.plist"
+    ]
+  }
+}
