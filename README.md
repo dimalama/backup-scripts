@@ -13,6 +13,7 @@ A robust collection of shell scripts for automated Git-based backups with enhanc
 - **Health Check**: Script to monitor backup job status and health
 - **Dry Run Mode**: Test backups without making actual changes
 - **Conflict Detection**: Better handling of merge conflicts
+- **Branch Safety**: Automatic branch validation and switching to prevent data corruption
 
 ## Quick Start
 
@@ -153,6 +154,27 @@ Backup to a specific branch:
 
 ```bash
 ./backup-to-git.sh my-project feature-branch
+```
+
+**Branch Safety**: The script automatically ensures you're on the correct branch before pulling/pushing:
+
+- If already on the target branch, continues with backup
+- If on a different branch with no uncommitted changes, automatically switches
+- If the target branch doesn't exist locally, creates it from `origin/<branch>`
+- If there are uncommitted changes, fails with a clear error message
+
+This prevents accidentally merging or pushing to the wrong branch.
+
+**Example scenarios**:
+```bash
+# Currently on 'main', no uncommitted changes
+./backup-to-git.sh my-project dev
+# → Switches to 'dev', then backs up
+
+# Currently on 'main', with uncommitted changes
+./backup-to-git.sh my-project dev
+# → Fails with error: "Cannot switch branches - uncommitted changes detected"
+# → You must commit or stash changes first
 ```
 
 ### Retry Logic

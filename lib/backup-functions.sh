@@ -171,6 +171,63 @@ setup_git_user() {
     fi
 }
 
+# Ensure we're on the correct branch
+# Usage: ensure_branch <branch_name>
+ensure_branch() {
+    local target_branch="$1"
+    local current_branch
+
+    # Get current branch name
+    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        log_message "Failed to determine current branch" "ERROR"
+        return 1
+    fi
+
+    # Check if we're already on the target branch
+    if [ "$current_branch" = "$target_branch" ]; then
+        log_message "Already on branch '$target_branch'" "INFO"
+        return 0
+    fi
+
+    log_message "Current branch is '$current_branch', need to switch to '$target_branch'" "INFO"
+
+    # Check if there are uncommitted changes
+    if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+        log_message "ERROR: Cannot switch branches - uncommitted changes detected" "ERROR"
+        log_message "Please commit or stash changes on branch '$current_branch' before running backup" "ERROR"
+        return 1
+    fi
+
+    # Check if the target branch exists locally
+    if git show-ref --verify --quiet "refs/heads/$target_branch"; then
+        # Branch exists locally, switch to it
+        log_message "Switching to existing local branch '$target_branch'" "INFO"
+        if git checkout "$target_branch" >> "$LOG_FILE" 2>&1; then
+            log_message "Successfully switched to branch '$target_branch'" "SUCCESS"
+            return 0
+        else
+            log_message "Failed to switch to branch '$target_branch'" "ERROR"
+            return 1
+        fi
+    else
+        # Branch doesn't exist locally, check if it exists on remote
+        if git fetch origin "$target_branch" >> "$LOG_FILE" 2>&1; then
+            log_message "Creating local branch '$target_branch' from origin/$target_branch" "INFO"
+            if git checkout -b "$target_branch" "origin/$target_branch" >> "$LOG_FILE" 2>&1; then
+                log_message "Successfully created and switched to branch '$target_branch'" "SUCCESS"
+                return 0
+            else
+                log_message "Failed to create branch '$target_branch' from remote" "ERROR"
+                return 1
+            fi
+        else
+            log_message "ERROR: Branch '$target_branch' does not exist locally or on remote" "ERROR"
+            return 1
+        fi
+    fi
+}
+
 # Pull latest changes from remote
 # Usage: git_pull_latest
 git_pull_latest() {
@@ -298,6 +355,12 @@ perform_backup() {
 
     # Setup git user
     setup_git_user
+
+    # Ensure we're on the correct branch
+    if ! ensure_branch "$branch"; then
+        send_notification "Backup Failed: $backup_name" "Failed to switch to branch '$branch'" "ERROR"
+        return 1
+    fi
 
     # Pull latest changes
     if ! git_pull_latest "$branch"; then

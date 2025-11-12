@@ -66,6 +66,10 @@ check_backup_job() {
         else
             echo -e "  ${GREEN}✓ Git repository${NC}"
 
+            # Show current branch
+            local current_branch=$(git -C "$backup_dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+            echo "  Current branch: $current_branch"
+
             # Check if there's a remote configured
             if ! git -C "$backup_dir" remote get-url origin >/dev/null 2>&1; then
                 echo -e "  ${YELLOW}⚠ No remote 'origin' configured${NC}"
