@@ -199,7 +199,7 @@ echo ""
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo -e "${BLUE}Launch Agents Status:${NC}"
     for job_name in "${!BACKUP_JOBS[@]}"; do
-        local plist_file="$HOME/Library/LaunchAgents/com.example.backup-${job_name}.plist"
+        plist_file="$HOME/Library/LaunchAgents/com.example.backup-${job_name}.plist"
         if [ -f "$plist_file" ]; then
             if launchctl list | grep -q "com.example.backup-${job_name}"; then
                 echo -e "  ${GREEN}✓ com.example.backup-${job_name} is loaded${NC}"
