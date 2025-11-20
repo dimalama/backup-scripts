@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo:*)",
+      "Bash(bash:*)",
+      "Bash(DRY_RUN=true ./backup-to-git.sh:*)",
+      "Bash(cat:*)",
+      "Bash(/opt/homebrew/bin/bash:*)",
+      "Bash(/usr/local/bin/bash:*)",
+      "Bash(brew install:*)",
+      "Bash(then echo \"Updating: $file\" fi done)",
+      "Bash(/bin/ls:*)",
+      "Bash(timeout 10 bash -c:*)",
+      "Bash(git init:*)",
+      "Bash(/tmp/test-backup/README.md)",
+      "Bash(git add:*)",
+      "Bash(git config:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git -C /tmp/test-backup add README.md)",
+      "Bash(git -C /tmp/test-backup config:*)",
+      "Bash(git -C /tmp/test-backup config user.name \"Test\")",
+      "Bash(git -C /tmp/test-backup commit -m \"Initial commit\")",
+      "Bash(git -C /tmp/test-backup branch:*)",
+      "Bash(./backup-to-git.sh:*)",
+      "Bash(DRY_RUN=true bash:*)",
+      "Bash(export DRY_RUN=true)",
+      "Bash(./backup-obsidian.sh:*)",
+      "Bash(GIT_DIR=\"$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/MyBrain/.git\" git -C \"$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/MyBrain\" status --short)",
+      "Bash(xattr:*)",
+      "Bash(DRY_RUN=true ./backup-obsidian.sh:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

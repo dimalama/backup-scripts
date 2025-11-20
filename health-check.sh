@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Backup Health Check Script
 # Verifies that all backup jobs are configured correctly and up-to-date

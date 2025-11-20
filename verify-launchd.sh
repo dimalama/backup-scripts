@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Verification script for launchd configuration
 # Checks if backup scripts will run after restart

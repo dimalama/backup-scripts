@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # ============================================
 # Backup Scripts Configuration
@@ -37,7 +37,7 @@ export GIT_USER_NAME="Your Name"
 export VERIFY_BACKUP=true
 
 # Dry run mode (test without making changes)
-export DRY_RUN=false
+export DRY_RUN="${DRY_RUN:-false}"
 
 # ============================================
 # Notification Settings

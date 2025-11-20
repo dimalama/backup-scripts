@@ -533,6 +533,50 @@ VERIFY_BACKUP=false
 
 ## Troubleshooting
 
+### Common Issues
+
+#### Git hangs or fails with "index.lock" errors in iCloud directories
+
+**Symptom**: Backup scripts hang indefinitely or fail with "Unable to create .git/index.lock: File exists"
+
+**Cause**: iCloud Drive tries to sync the `.git` directory while Git operations are running, causing conflicts.
+
+**Solution**: Exclude the `.git` directory from iCloud sync:
+```bash
+# For Obsidian vault in iCloud
+xattr -w com.apple.fileprovider.ignore_sync 1 "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/MyBrain/.git"
+
+# Verify the attribute is set
+xattr "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/MyBrain/.git"
+# Should show: com.apple.fileprovider.ignore_sync
+
+# Clean up any existing lock files
+rm -f "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/MyBrain/.git/index.lock"
+```
+
+**Note**: This only excludes the `.git` directory from iCloud sync. Your actual files will still sync normally.
+
+#### Bash version too old (associative array errors)
+
+**Symptom**: `declare: -A: invalid option`
+
+**Cause**: macOS ships with bash 3.2.57, but scripts require bash 4.0+ for associative arrays.
+
+**Solution**: Install modern bash and update shebang:
+
+```bash
+# Install bash 5.x via Homebrew
+brew install bash
+
+# Verify installation
+/usr/local/bin/bash --version  # Intel Mac
+/opt/homebrew/bin/bash --version  # Apple Silicon
+
+# Scripts in this repo are already configured to use /usr/local/bin/bash
+```
+
+### General Troubleshooting
+
 1. **Check backup health**:
    ```bash
    ./health-check.sh

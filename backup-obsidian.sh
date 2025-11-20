@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Obsidian Backup Script
 # This script backs up your Obsidian vault to Git

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Source configuration
 CONFIG_FILE="$(dirname "$0")/config.sh"

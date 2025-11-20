@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Generic Git Backup Script
 # Usage: ./backup-to-git.sh <backup_name> [branch]

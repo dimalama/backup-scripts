@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Shared library for backup scripts
 # This file contains common functions used across all backup scripts
@@ -253,19 +253,31 @@ git_pull_latest() {
 # Usage: git_commit_changes "commit_message"
 git_commit_changes() {
     local commit_message="$1"
+    local git_timeout=300  # 5 minutes timeout for git operations
 
-    git add . >> "$LOG_FILE" 2>&1
+    log_message "Adding changes to git index..."
+
+    # Use timeout to prevent hanging on iCloud-synced directories
+    if ! timeout "$git_timeout" git add . >> "$LOG_FILE" 2>&1; then
+        log_message "Git add operation timed out or failed (may be caused by iCloud sync conflicts)" "ERROR"
+        # Try to clean up any stale lock files
+        rm -f .git/index.lock 2>/dev/null
+        return 2
+    fi
 
     # Check if we have any changes to commit
     if git diff-index --quiet HEAD --; then
         log_message "No changes to commit"
         return 1
     else
-        if git commit -m "$commit_message" >> "$LOG_FILE" 2>&1; then
+        log_message "Committing changes..."
+        if timeout "$git_timeout" git commit -m "$commit_message" >> "$LOG_FILE" 2>&1; then
             log_message "Changes committed successfully" "SUCCESS"
             return 0
         else
             log_message "Failed to commit changes" "ERROR"
+            # Clean up lock file if commit failed
+            rm -f .git/index.lock 2>/dev/null
             return 2
         fi
     fi
@@ -351,6 +363,16 @@ perform_backup() {
         log_message "ERROR: Not a git repository: $backup_dir" "ERROR"
         send_notification "Backup Failed: $backup_name" "Not a git repository: $backup_dir" "ERROR"
         return 1
+    fi
+
+    # Clean up any stale git lock files before starting
+    if [ -f ".git/index.lock" ]; then
+        log_message "Removing stale git lock file" "WARNING"
+        rm -f .git/index.lock 2>/dev/null || {
+            log_message "Failed to remove stale lock file" "ERROR"
+            send_notification "Backup Failed: $backup_name" "Unable to remove stale git lock file" "ERROR"
+            return 1
+        }
     fi
 
     # Setup git user

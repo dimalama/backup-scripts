@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Personal Documents Backup Script
 # This script backs up your personal documents to Git
