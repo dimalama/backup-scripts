@@ -194,10 +194,11 @@ chmod +x setup-launchd.sh
 
 This creates and loads launch agents that will:
 - Run backups every day at midnight
-- Run backups when your Mac boots
+- Run backups when your Mac boots/logs in (RunAtLoad=true)
 - Run backups immediately after setup
+- **Persist across restarts** - agents automatically reload on login
 
-**Verify launch agents are loaded:**
+**Verify launch agents are loaded and will survive restart:**
 
 ```bash
 # Check if agents are loaded
@@ -207,9 +208,36 @@ launchctl list | grep backup
 # com.example.backup-obsidian
 # com.example.backup-personal-docs
 
-# Check agent status
+# Run comprehensive verification
+./verify-launchd.sh
+
+# Check agent status and health
 ./health-check.sh
 ```
+
+The verification script checks:
+- Launch agent files exist
+- Agents are loaded in launchd
+- RunAtLoad is enabled (ensures restart persistence)
+- Backup scripts are executable
+- Schedule configuration is correct
+
+**Test restart persistence:**
+
+```bash
+# Option 1: Test without restarting
+launchctl unload ~/Library/LaunchAgents/com.example.backup-obsidian.plist
+launchctl load ~/Library/LaunchAgents/com.example.backup-obsidian.plist
+# Check logs to verify it ran on load
+
+# Option 2: Full restart test
+# 1. Note current time: date
+# 2. Restart your Mac
+# 3. After login, run: ./verify-launchd.sh
+# 4. Check logs: grep "$(date +%Y-%m-%d)" logs/obsidian_backup.log
+```
+
+See [TESTING.md](TESTING.md) for comprehensive restart testing guide.
 
 #### 6. View Launch Agent Logs
 
@@ -281,24 +309,29 @@ git config --global credential.helper osxkeychain
 
 ### Best Practices for macOS
 
-1. **Keep your Mac awake during backups** - Consider using [Amphetamine](https://apps.apple.com/us/app/amphetamine/id937984704) (free on App Store) or `caffeinate` command
+1. **Verify restart persistence after setup:**
+   ```bash
+   ./verify-launchd.sh
+   ```
 
-2. **Test with dry-run first:**
+2. **Keep your Mac awake during backups** - Consider using [Amphetamine](https://apps.apple.com/us/app/amphetamine/id937984704) (free on App Store) or `caffeinate` command
+
+3. **Test with dry-run first:**
    ```bash
    DRY_RUN=true ./backup-to-git.sh obsidian
    ```
 
-3. **Run health checks regularly:**
+4. **Run health checks regularly:**
    ```bash
    ./health-check.sh
    ```
 
-4. **Monitor logs periodically:**
+5. **Monitor logs periodically:**
    ```bash
    grep ERROR logs/*.log
    ```
 
-5. **Use SSH keys for git** - Set up SSH keys to avoid password prompts:
+6. **Use SSH keys for git** - Set up SSH keys to avoid password prompts:
    ```bash
    ssh-keygen -t ed25519 -C "your-email@example.com"
    cat ~/.ssh/id_ed25519.pub
@@ -320,6 +353,9 @@ DRY_RUN=true ./backup-to-git.sh obsidian
 # Check all backup jobs health
 ./health-check.sh
 
+# Verify launch agents and restart persistence
+./verify-launchd.sh
+
 # View logs
 tail -f logs/obsidian_backup.log
 
@@ -328,6 +364,10 @@ launchctl list | grep backup
 
 # Trigger immediate backup via launch agent
 launchctl start com.example.backup-obsidian
+
+# Test restart behavior without restarting
+launchctl unload ~/Library/LaunchAgents/com.example.backup-obsidian.plist
+launchctl load ~/Library/LaunchAgents/com.example.backup-obsidian.plist
 ```
 
 ## Configuration
