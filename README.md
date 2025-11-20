@@ -28,6 +28,308 @@ A robust collection of shell scripts for automated Git-based backups with enhanc
    ./backup-to-git.sh obsidian
    ```
 
+## macOS Setup Guide (Intel MacBook Pro)
+
+### Prerequisites
+
+Your Intel MacBook Pro should have the following installed:
+
+```bash
+# Check if git is installed
+git --version
+# Should show: git version 2.x.x or higher
+
+# Check bash version
+bash --version
+# macOS comes with bash 3.2, which works fine for these scripts
+
+# Check if you have curl (for webhooks, optional)
+curl --version
+```
+
+If git is not installed, install it:
+```bash
+# Install via Homebrew (recommended)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install git
+
+# Or install Xcode Command Line Tools
+xcode-select --install
+```
+
+### Step-by-Step Setup
+
+#### 1. Clone the Repository
+
+```bash
+# Clone to your home directory
+cd ~
+git clone <your-repo-url> backup-scripts
+cd backup-scripts
+```
+
+#### 2. Prepare Your Git Repositories
+
+Each directory you want to backup must be a git repository with a remote configured.
+
+**Example: Setting up Obsidian vault backup**
+
+```bash
+# Navigate to your Obsidian vault
+cd ~/Documents/ObsidianVault
+
+# Initialize git if not already done
+git init
+
+# Create a .gitignore (optional, to exclude certain files)
+cat > .gitignore << 'EOF'
+.DS_Store
+.obsidian/workspace*
+.trash/
+EOF
+
+# Add remote repository (create this on GitHub/GitLab first)
+git remote add origin https://github.com/yourusername/obsidian-vault.git
+
+# Make initial commit
+git add .
+git commit -m "Initial commit"
+git push -u origin main
+```
+
+Repeat this for each directory you want to backup (personal docs, projects, etc.).
+
+#### 3. Configure the Backup Scripts
+
+```bash
+# Navigate to backup-scripts directory
+cd ~/backup-scripts
+
+# Copy the template configuration
+cp config.template.sh config.sh
+
+# Edit configuration with your favorite editor
+nano config.sh
+# or
+vim config.sh
+# or
+open -e config.sh  # Opens in TextEdit
+```
+
+**Edit `config.sh` with your settings:**
+
+```bash
+#!/bin/bash
+
+# Path to this backup scripts directory
+export BACKUP_SCRIPTS_DIR="$HOME/backup-scripts"
+
+# Define your backup jobs
+declare -A BACKUP_JOBS
+BACKUP_JOBS[obsidian]="$HOME/Documents/ObsidianVault"
+BACKUP_JOBS[personal-docs]="$HOME/Documents/Personal"
+# Add more as needed
+
+# Git configuration
+export GIT_USER_EMAIL="your-email@example.com"
+export GIT_USER_NAME="Your Name"
+
+# Enable macOS notifications
+export ENABLE_MACOS_NOTIFICATIONS=true
+
+# Optional: Email notifications (requires mail command)
+export ENABLE_EMAIL_NOTIFICATIONS=false
+export NOTIFICATION_EMAIL="your-email@example.com"
+
+# Optional: Webhook notifications
+export ENABLE_WEBHOOK_NOTIFICATIONS=false
+export WEBHOOK_URL=""
+```
+
+#### 4. Test Your Backups
+
+Before setting up automation, test each backup manually:
+
+```bash
+# Test in dry-run mode first (doesn't make changes)
+DRY_RUN=true ./backup-to-git.sh obsidian
+
+# If dry-run looks good, run actual backup
+./backup-to-git.sh obsidian
+
+# Check the logs
+cat logs/obsidian_backup.log
+
+# Run health check to verify everything is configured correctly
+./health-check.sh
+```
+
+You should see output like:
+```
+================================================
+Starting backup: obsidian
+Directory: /Users/yourusername/Documents/ObsidianVault
+Branch: main
+================================================
+Already on branch 'main'
+Pulling latest changes from origin/main
+Successfully pulled latest changes
+Changes committed successfully
+Backup completed successfully
+```
+
+#### 5. Set Up Automated Backups (Optional but Recommended)
+
+**Using launchd for automatic backups:**
+
+```bash
+# Copy the setup script template
+cp setup-launchd.template.sh setup-launchd.sh
+chmod +x setup-launchd.sh
+
+# Edit the template if needed (usually not necessary)
+# Then run the setup
+./setup-launchd.sh
+```
+
+This creates and loads launch agents that will:
+- Run backups every day at midnight
+- Run backups when your Mac boots
+- Run backups immediately after setup
+
+**Verify launch agents are loaded:**
+
+```bash
+# Check if agents are loaded
+launchctl list | grep backup
+
+# You should see entries like:
+# com.example.backup-obsidian
+# com.example.backup-personal-docs
+
+# Check agent status
+./health-check.sh
+```
+
+#### 6. View Launch Agent Logs
+
+Logs are stored in the `logs` directory:
+
+```bash
+# View recent backup activity
+tail -f logs/obsidian_backup.log
+
+# View all logs
+ls -lh logs/
+
+# Check for errors
+grep ERROR logs/*.log
+```
+
+#### 7. Manual Control of Launch Agents
+
+```bash
+# Unload an agent (stop automatic backups)
+launchctl unload ~/Library/LaunchAgents/com.example.backup-obsidian.plist
+
+# Reload an agent (resume automatic backups)
+launchctl load ~/Library/LaunchAgents/com.example.backup-obsidian.plist
+
+# Trigger a backup immediately
+launchctl start com.example.backup-obsidian
+```
+
+### Troubleshooting on macOS
+
+**"Permission denied" when running scripts:**
+```bash
+chmod +x backup-to-git.sh backup-obsidian.sh backup-personal-docs.sh health-check.sh
+```
+
+**Launch agent not running:**
+```bash
+# Check system logs
+log show --predicate 'subsystem == "com.apple.launchd"' --last 1h | grep backup
+
+# Verify plist file syntax
+plutil -lint ~/Library/LaunchAgents/com.example.backup-obsidian.plist
+
+# Reload the agent
+launchctl unload ~/Library/LaunchAgents/com.example.backup-obsidian.plist
+launchctl load ~/Library/LaunchAgents/com.example.backup-obsidian.plist
+```
+
+**"bash: local: can only be used in a function" error:**
+This was a bug in earlier versions. Make sure you're using the latest version:
+```bash
+git pull origin main
+```
+
+**Notifications not appearing:**
+- Check System Preferences → Notifications → Script Editor
+- Make sure notifications are enabled
+- Test with: `osascript -e 'display notification "Test" with title "Backup Test"'`
+
+**Git authentication issues:**
+```bash
+# Use SSH instead of HTTPS for easier authentication
+git remote set-url origin git@github.com:yourusername/repo.git
+
+# Or configure git credential helper for HTTPS
+git config --global credential.helper osxkeychain
+```
+
+### Best Practices for macOS
+
+1. **Keep your Mac awake during backups** - Consider using [Amphetamine](https://apps.apple.com/us/app/amphetamine/id937984704) (free on App Store) or `caffeinate` command
+
+2. **Test with dry-run first:**
+   ```bash
+   DRY_RUN=true ./backup-to-git.sh obsidian
+   ```
+
+3. **Run health checks regularly:**
+   ```bash
+   ./health-check.sh
+   ```
+
+4. **Monitor logs periodically:**
+   ```bash
+   grep ERROR logs/*.log
+   ```
+
+5. **Use SSH keys for git** - Set up SSH keys to avoid password prompts:
+   ```bash
+   ssh-keygen -t ed25519 -C "your-email@example.com"
+   cat ~/.ssh/id_ed25519.pub
+   # Add this to GitHub/GitLab SSH keys
+   ```
+
+### Quick Reference Commands
+
+```bash
+# Run manual backup
+./backup-to-git.sh obsidian
+
+# Run backup to specific branch
+./backup-to-git.sh my-project dev
+
+# Test without making changes
+DRY_RUN=true ./backup-to-git.sh obsidian
+
+# Check all backup jobs health
+./health-check.sh
+
+# View logs
+tail -f logs/obsidian_backup.log
+
+# List launch agents
+launchctl list | grep backup
+
+# Trigger immediate backup via launch agent
+launchctl start com.example.backup-obsidian
+```
+
 ## Configuration
 
 ### Backup Jobs
