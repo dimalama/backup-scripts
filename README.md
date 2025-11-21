@@ -14,6 +14,18 @@ A robust collection of shell scripts for automated Git-based backups with enhanc
 - **Dry Run Mode**: Test backups without making actual changes
 - **Conflict Detection**: Better handling of merge conflicts
 - **Branch Safety**: Automatic branch validation and switching to prevent data corruption
+- **Automated Daily Backups**: LaunchAgent integration for macOS
+- **Restart Persistence**: Backups automatically resume after system restart
+- **iCloud Compatibility**: Works with iCloud Drive-synced directories
+- **Git Timeout Protection**: Prevents hanging on slow operations
+
+## Documentation
+
+📚 **New to this project?** Start with these guides:
+
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Complete setup instructions from scratch
+- **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)** - Comprehensive testing guide (18 tests)
+- **README.md** (this file) - Feature overview and quick reference
 
 ## Quick Start
 
@@ -202,17 +214,20 @@ This creates and loads launch agents that will:
 
 ```bash
 # Check if agents are loaded
-launchctl list | grep backup
+launchctl list | grep dlukianenko
 
 # You should see entries like:
-# com.example.backup-obsidian
-# com.example.backup-personal-docs
+# -  0  com.dlukianenko.backup-obsidian
+# -  0  com.dlukianenko.backup-personal-docs
 
-# Run comprehensive verification
-./verify-launchd.sh
+# Check detailed agent status
+launchctl print gui/$(id -u)/com.dlukianenko.backup-obsidian | grep -E "state|program|runatload"
 
 # Check agent status and health
 ./health-check.sh
+
+# View recent backup logs
+tail -20 logs/obsidian_backup.log
 ```
 
 The verification script checks:

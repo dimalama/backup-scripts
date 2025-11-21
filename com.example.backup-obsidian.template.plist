@@ -6,7 +6,7 @@
     <string>com.example.backup-obsidian</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/bin/bash</string>
+        <string>/usr/local/bin/bash</string>
         <string>/path/to/backup-scripts/backup-obsidian.sh</string>
     </array>
     <key>StartCalendarInterval</key>

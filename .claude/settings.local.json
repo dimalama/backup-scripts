@@ -28,7 +28,13 @@
       "Bash(./backup-obsidian.sh:*)",
       "Bash(GIT_DIR=\"$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/MyBrain/.git\" git -C \"$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/MyBrain\" status --short)",
       "Bash(xattr:*)",
-      "Bash(DRY_RUN=true ./backup-obsidian.sh:*)"
+      "Bash(DRY_RUN=true ./backup-obsidian.sh:*)",
+      "Bash(launchctl list:*)",
+      "Bash(chmod:*)",
+      "Bash(launchctl load:*)",
+      "Bash(./verify-launchd.sh:*)",
+      "Bash(plutil:*)",
+      "Bash(launchctl print:*)"
     ],
     "deny": [],
     "ask": []
