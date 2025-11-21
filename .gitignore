@@ -1,7 +1,32 @@
-.DS_Store
+# User-specific configuration
+config.sh
+
+# User-specific launchd plist files (not templates)
+com.dlukianenko.*.plist
+
+# Session-specific documentation
+SESSION_SUMMARY.md
+
+# Claude Code settings (may contain user-specific paths)
+.claude/settings.local.json
+
+# Log files
 logs/
 *.log
-config.sh
-setup-launchd.sh
-*.plist
-!*.template.plist
+*.log.*
+
+# macOS
+.DS_Store
+
+# Backup files
+*.bak
+*~
+
+# Temporary files
+*.tmp
+*.swp
+.*.swp
+
+# IDE
+.vscode/
+.idea/
